@@ -4,21 +4,33 @@ import java.util.TreeMap;
 public class HashRing implements ConsistentHashing {
     private final HashFunction hashFunction;
     private SortedMap<String, ServerNode> ring;
+    private int virtualNodesCount;
 
     public HashRing(HashFunction hashFunction) {
         this.hashFunction = hashFunction;
         this.ring = new TreeMap<>();
+        virtualNodesCount = 0;
+    }
+
+    public HashRing(HashFunction hashFunction, int virtualNodesCount) {
+        this.hashFunction = hashFunction;
+        this.ring = new TreeMap<>();
+        this.virtualNodesCount = virtualNodesCount;
     }
 
     @Override
     public void add(ServerNode serverNode) {
-        String id = serverNode.getId();
-        ring.put(hashFunction.hash(id), serverNode);
+        for(int i=0; i<virtualNodesCount; ++i) {
+            String id = serverNode.getId();
+            ring.put(hashFunction.hash(id), serverNode);    
+        }
     }
 
     @Override
     public void remove(ServerNode node) {
-        ring.remove(hashFunction.hash(node.getId()));
+        for(int i=0; i<virtualNodesCount; ++i) {
+            ring.remove(hashFunction.hash(node.getId()));
+        }
     }
 
     @Override
